@@ -1,0 +1,57 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+library(lubridate)
+big_data <-read_csv("taxi_2010.csv")
+#df1 <-subset(t, select = c(2, 4, 6, 7, 20)) %>%
+#  filter( PULocationID == 255 | PULocationID == 256 | (between(pickup_latitude, 40.697936,
+#    40.725179) & between(pickup_longitude, -73.969910, -73.936482))) %>%
+#  mutate(month =  month(as.POSIXct(tpep_pickup_datetime, format = "%m/%d/%Y %H:%M:%S"))) %>%
+#  group_by(month) %>% tally() %>%
+#  mutate(passenger_count = passenger_count * n) %>%
+#  group_by(month) %>% summarise(t = sum(passenger_count)) %>%
+#  na.omit()
+                      # 2012/11/10 c(3, 10, 11)
+                      # 2014/3 c(2, 6, 7)
+df1 <-subset(big_data, select = c(2, 6, 7)) %>%
+  filter(between(Start_Lat, 40.697936, 40.725179) & between(Start_Lon, -73.969910, -73.936482)) %>%
+  mutate(month =  month(as.POSIXct(Trip_Pickup_DateTime, format = "%m/%d/%Y %H:%M:%S"))) %>%
+  group_by(month) %>% tally() 
+
+# Repeat above algorithm for dropoffs
+#df2 <-subset(big_data, select = c(3, 4, 10, 11, 21)) %>%
+#  filter( DOLocationID == 255 | DOLocationID == 256 | (between(dropoff_latitude, 40.697936,
+#    40.725179) & between(dropoff_longitude, -73.969910, -73.936482))) %>%
+#  mutate(month =  month(as.POSIXct(tpep_dropoff_datetime, format = "%m/%d/%Y %H:%M:%S"))) %>%
+#  group_by(month, passenger_count) %>% tally() %>%
+#  mutate(passenger_count = passenger_count * n) %>%
+#  group_by(month) %>% summarise(t = sum(passenger_count)) %>%
+#  na.omit()
+                        # 2013/12/11/10   c(3, 10, 11)
+                        # 2014   c(3, 8, 9)
+df2 <-subset(big_data, select = c(3, 10, 11)) %>%
+  filter(between(End_Lat, 40.697936, 40.725179) & between(End_Lon, -73.969910, -73.936482)) %>%
+  mutate(month =  month(as.POSIXct(Trip_Dropoff_DateTime, format = "%m/%d/%Y %H:%M:%S"))) %>%
+  group_by(month) %>% tally()
+
+df3 <- merge(df2, df1, by = "month", all.x = TRUE) %>%
+  mutate(tot_pass = n.x + n.y) %>%
+  subset(select = c(1, 4))
+
+write_csv(df3, "wb_taxi_2011_NOPASS.csv")
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
